@@ -4,10 +4,12 @@ module Solution =
     module ActualCode =
         open System.Text.RegularExpressions
 
-        let explode (s:string) =
+        let explode (s:string) = 
             [for c in s -> c]
-
-        let min x y = if x < y then x else y
+        let min x y = 
+            if x < y then x else y
+        let (|StartsWith|_|) needle (haystack:string) = 
+            if haystack.StartsWith(needle) then Some () else None
 
         let countFloors =
             let moveFloor current input =            
@@ -69,6 +71,20 @@ module Solution =
                 | [] -> [pos]
                 | x::xs -> pos::moveSanta (nextLocation pos x) xs
 
+        let generateMd5 key = 
+            let md5 = System.Security.Cryptography.MD5.Create()
+            let doHash key num =
+                key + (string num)
+                |> System.Text.Encoding.ASCII.GetBytes
+                |> md5.ComputeHash
+                |> Array.map (fun x -> System.String.Format("{0:X2}", x))
+                |> System.String.Concat
+            let rec innerGenerate key num = seq {
+                yield (doHash key num, num)
+                yield! innerGenerate key (num+1)
+            }
+            innerGenerate key 0
+
     open ActualCode
 
     module day1 =
@@ -82,10 +98,9 @@ module Solution =
         let solution2 =
             let steps = 
                 countFloors input
-                |> List.takeWhile (fun (_, floor) -> floor <> -1)
-                |> List.last
+                |> List.find (fun (_, floor) -> floor = -1)
                 |> fst
-            steps + 1
+            steps
 
     module day2 =
         let input = System.IO.File.ReadLines("InputDay2.txt")
@@ -118,3 +133,11 @@ module Solution =
             List.append santaLocations robotLocations
             |> List.distinct
             |> List.length
+
+    module day4 =
+        let findStartingWith x =
+            generateMd5 "iwrupvqb"
+            |> Seq.find (fun (hash,_) -> hash.StartsWith(x))
+            |> snd
+        let solution1 = findStartingWith "00000"
+        let solution2 = findStartingWith "000000"
