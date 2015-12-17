@@ -29,6 +29,6 @@ let explode (s:string) =
 
 [<EntryPoint>]
 let main argv =
-    let res = AdventOfCode.Solution.day2.solution2
+    let res = AdventOfCode.Solution.day3.solution2
     printfn "%d" res
     0 // return an integer exit code
