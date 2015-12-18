@@ -101,6 +101,31 @@ module ActualCode =
         let res = regexes |> List.tryFind (fun r -> Regex.IsMatch(s, r) |> not)
         if res = None then Nice else Naughty
 
+module Lights =
+    type Position = int*int
+    type State = On | Off
+    type Action = TurnOn | TurnOff | Toggle | Nothing
+    type Update = Action * Position * Position
+    type Light = Position * State
+
+    let updateLights updates lights =
+        let update action (pos, state) =
+            match action with
+            | TurnOn -> (pos, On)
+            | TurnOff -> (pos, Off)
+            | Toggle -> (pos, if state = On then Off else On)
+            | Nothing -> (pos, state)
+        let isInside topLeft bottomLeft pos =
+            pos >= topLeft && pos <= bottomLeft
+        let updateLight l = 
+            updates 
+            |> List.filter (fun (_, x, y) -> isInside x y (fst l))
+            |> List.fold (fun acc (a, _, _) -> update a acc) l
+
+        lights
+        |> List.map updateLight
+
+
 open ActualCode
 open InputHelp
 module Day1 =
@@ -179,6 +204,53 @@ module Day5 =
     open hidden
     let solution1 () = countStrings niceRegexesPart1
     let solution2 () = countStrings niceRegexesPart2
+
+module Day6 =
+    open Lights
+    module hidden=
+        open System.Text.RegularExpressions
+        let file = "InputDay6.txt"
+        let toAction s =
+            match s with
+            | "turn on" -> TurnOn
+            | "turn off" -> TurnOff
+            | "toggle" -> Toggle
+            | _ -> Nothing
+        let toPosition (s:string) =
+            match s.Split [|','|] |> Array.map System.Int32.Parse with
+            | [|x;y|] -> Some (x, y)
+            | _ -> None
+        let parseDay6 s =
+            let m = Regex.Match(s, "^(?<action>.+) (?<start>[0-9]+,[0-9]+) through (?<end>[0-9]+,[0-9]+)")
+            if m.Success then
+                let action = toAction (m.Groups.Item "action").Value
+                let start = toPosition (m.Groups.Item "start").Value
+                let foo = toPosition (m.Groups.Item "end").Value
+                match action, start, foo with
+                    | (a, Some s, Some e) -> (a,s,e)
+                    | _ -> (Nothing, (-1, -1), (-1, -1))
+            else (Nothing, (-1, -1), (-1, -1))
+        let rec positions current =
+            //StackOverflows because not tail recursive
+            match current with
+            | (999, 999) -> [current]
+            | (x, 999) -> current::positions (x+1, 0)
+            | (x, y) -> current::positions(x, y+1)
+            
+
+    open hidden
+    let solution1 () = 
+        let actions = 
+            GetLineInput file 
+            |> Seq.map parseDay6
+            |> Seq.toList
+        let lights = positions (0, 0) |> List.map (fun p -> (p, Off))
+
+        updateLights actions lights
+        |> List.filter (fun (_, s) -> s = On)
+        |> List.length
+
+    let solution2 () = "Not implemented" 
 
 module DayX =
     module hidden=

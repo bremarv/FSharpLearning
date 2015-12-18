@@ -27,6 +27,10 @@ let days = [
             {part=1; description="Nice strings part 1"; solution=Day5.solution1 >> string}
             {part=2; description="Nice strings part 2"; solution=Day5.solution2 >> string}
         ]};
+        { day=6; description="Probably a Fire Hazard"; parts =[
+            {part=1; description=""; solution=Day6.solution1 >> string}
+            {part=2; description=""; solution=Day6.solution2 >> string}
+        ]};
     ]
 
 let (|AdventOfCodeInput|_|) input =
