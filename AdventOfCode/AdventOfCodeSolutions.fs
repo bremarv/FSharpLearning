@@ -1,11 +1,20 @@
 ﻿namespace AdventOfCode
 
-module ActualCode =
-    open System.Text.RegularExpressions
-    type ReflectionDummy = ReflectionDummy
-
+module InputHelp =    
     let explode (s:string) = 
         [for c in s -> c]
+
+    let GetCharacterInput s =
+        System.IO.File.ReadAllLines s
+        |> Array.head
+        |> explode
+
+    let GetLineInput =
+        System.IO.File.ReadLines
+
+module ActualCode =
+    open System.Text.RegularExpressions
+
     let min x y = 
         if x < y then x else y
     let (|StartsWith|_|) needle (haystack:string) = 
@@ -85,53 +94,62 @@ module ActualCode =
         }
         innerGenerate key 0
 
-open ActualCode
-module Day1 =
-    module private help =
-        let rawInput () = Array.head (System.IO.File.ReadAllLines("InputDay1.txt"))
-        let input = rawInput >> explode
+    type Day5String = Nice | Naughty        
+    let niceRegexesPart1 = ["^(?!.*(ab|cd|pq|xy)).*$";"([a-z])\1";"([aeiou].*){3}"]
+    let niceRegexesPart2 = ["([a-z]{2}).*\1";"([a-z])[a-z]\1"]
+    let appraiseString2 regexes s =
+        let res = regexes |> List.tryFind (fun r -> Regex.IsMatch(s, r) |> not)
+        if res = None then Nice else Naughty
 
+open ActualCode
+open InputHelp
+module Day1 =
+    module private hidden =
+        let file = "InputDay1.txt"
+
+    open hidden
     let solution1 () =
-        countFloors (help.input ())
+        countFloors (GetCharacterInput file)
         |> List.last
         |> snd
 
     let solution2 () =
         let steps = 
-            countFloors (help.input ())
+            countFloors (GetCharacterInput file)
             |> List.find (fun (_, floor) -> floor = -1)
             |> fst
         steps
 
 module Day2 =
-    module private help =
-        let input () = System.IO.File.ReadLines("InputDay2.txt")
+    module private hidden =
+        let file = "InputDay2.txt"
         let boxValue f box =
             match box with
             | Some x -> f x
             | None -> 0
         
+    open hidden
     let solution1 () =
-        help.input ()
-        |> Seq.map (parseBox >> (help.boxValue boxWrapping))
+        GetLineInput file
+        |> Seq.map (parseBox >> (boxValue boxWrapping))
         |> Seq.sum
 
     let solution2 () =
-        help.input ()
-        |> Seq.map (parseBox >> (help.boxValue ribbonLength))
+        GetLineInput file
+        |> Seq.map (parseBox >> (boxValue ribbonLength))
         |> Seq.sum
 
 module Day3 =
-    module private help =
-        let rawInput () = Array.head (System.IO.File.ReadAllLines("InputDay3.txt"))
-        let input = rawInput >> explode
-
+    module private hidden =
+        let file = "InputDay3.txt"
+        
+    open hidden
     let solution1 () =
-        moveSanta (0, 0) (help.input ())
+        moveSanta (0, 0) (GetCharacterInput file)
         |> List.distinct
         |> List.length
     let solution2 () =
-        let splitList = List.foldBack (fun x (l, r) -> x::r, l) (help.input ()) ([],[])
+        let splitList = List.foldBack (fun x (l, r) -> x::r, l) (GetCharacterInput file) ([],[])
         let santaLocations = moveSanta (0, 0) (fst splitList)
         let robotLocations = moveSanta (0, 0) (snd splitList)
         List.append santaLocations robotLocations
@@ -139,14 +157,33 @@ module Day3 =
         |> List.length
 
 module Day4 =
-    module private help =
+    module private hidden =
         let findStartingWith x =
             generateMd5 "iwrupvqb"
             |> Seq.find (fun (hash,_) -> hash.StartsWith(x))
             |> snd
-    let solution1 () = help.findStartingWith "00000"
-    let solution2 () = help.findStartingWith "000000"
-    
+
+    open hidden
+    let solution1 () = findStartingWith "00000"
+    let solution2 () = findStartingWith "000000"
+   
+module Day5 =
+    module hidden=
+        let file = "InputDay5.txt"
+        let countStrings niceRegexes =
+            GetLineInput file
+            |> Seq.map (appraiseString2 niceRegexes)
+            |> Seq.filter (fun x -> x = Nice)
+            |> Seq.length
+
+    open hidden
+    let solution1 () = countStrings niceRegexesPart1
+    let solution2 () = countStrings niceRegexesPart2
+
 module DayX =
-    let solution1 () = ""
-    let solution2 () = ""
+    module hidden=
+        let file = "InputDay5.txt"
+
+    open hidden
+    let solution1 () = "Not implemented"
+    let solution2 () = "Not implemented" 

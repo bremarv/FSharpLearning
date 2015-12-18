@@ -23,6 +23,10 @@ let days = [
             {part=1; description="MD5 starting with 5 zeroes"; solution=Day4.solution1 >> string}
             {part=2; description="MD5 starting with 6 zeroes"; solution=Day4.solution2 >> string}
         ]};
+        { day=5; description="Doesn't He Have Intern-Elves For This?"; parts =[
+            {part=1; description="Nice strings part 1"; solution=Day5.solution1 >> string}
+            {part=2; description="Nice strings part 2"; solution=Day5.solution2 >> string}
+        ]};
     ]
 
 let (|AdventOfCodeInput|_|) input =
