@@ -8,9 +8,7 @@ let tryParseOption intStr =
       let i = System.Int32.Parse intStr
       Some i
    with _ -> None
-
-//let parseAndPrint = tryParseOption >> formatResult >> printfn "%s"
-
+   
 let rec readLines () = seq {
     let line = System.Console.ReadLine()
     if line <> "" then
@@ -29,6 +27,4 @@ let explode (s:string) =
 
 [<EntryPoint>]
 let main argv =
-    let res = AdventOfCode.Solution.day3.solution2
-    printfn "%d" res
     0 // return an integer exit code
