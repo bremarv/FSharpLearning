@@ -77,6 +77,22 @@ module ActualCode =
         }
         innerGenerate key 0
 
+    type Accumelator = 
+        | Empty
+        | Active of letter:char * count:int
+
+    let groupSequentialDigits =
+        let updateMonkey (accumelated:Accumelator list, current) char =
+            match current with
+            | Empty -> (accumelated, Active(letter = char, count = 1))
+            | Active(letter, count) ->
+                if char = letter 
+                then (accumelated, Active(char, count + 1))
+                else (current::accumelated, Active(char, 1))
+
+        List.fold updateMonkey ([], Empty)
+        >> (fun (list, curr) -> List.rev (curr::list))
+
     type Day5String = Nice | Naughty        
     let niceRegexesPart1 = ["^(?!.*(ab|cd|pq|xy)).*$";"([a-z])\1";"([aeiou].*){3}"]
     let niceRegexesPart2 = ["([a-z]{2}).*\1";"([a-z])[a-z]\1"]
@@ -255,10 +271,21 @@ module Day6 =
         doDay6 0 (updateIndividualLight adjustBrightness)
         |> Array.sumBy (fun (_, b) -> b)
 
-module DayX =
+module Day10 =
     module hidden=
-        let file = "InputDay5.txt"
+        let intToChars = string>>explode
+        let accToChars acc = 
+            match acc with
+            | Empty -> []
+            | Active(c, x) -> List.rev <| c::(intToChars x)
+        let groupedToCharArray = List.map accToChars >> List.concat
+        let lookAndSay = groupSequentialDigits >> List.map accToChars >> List.concat
+        let sequencialLAS count seed =
+            [1..count]
+            |> List.fold (fun state _ -> lookAndSay state) (explode seed)
+            |> List.toArray
+            |> System.String
 
     open hidden
-    let solution1 () = "Not implemented"
-    let solution2 () = "Not implemented" 
+    let solution1 () = sequencialLAS 40 "3113322113" |> String.length
+    let solution2 () = sequencialLAS 50 "3113322113" |> String.length

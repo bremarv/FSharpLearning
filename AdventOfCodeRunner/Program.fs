@@ -31,6 +31,13 @@ let days = [
             {part=1; description="Total lights on"; solution=Day6.solution1 >> string}
             {part=2; description="Brightness"; solution=Day6.solution2 >> string}
         ]};
+        { day=7; description="Some Assembly Required"; parts =[
+            {part=1; description="Total lights on"; solution=Day7.solution1 >> string}
+            {part=2; description="Brightness"; solution=Day7.solution2 >> string}
+        ]};
+        { day=10; description="Elves Look, Elves Say"; parts =[
+            {part=1; description="40 times"; solution=Day10.solution1 >> string}
+            {part=2; description="50 times"; solution=Day10.solution2 >> string}
         ]};
     ]
 
