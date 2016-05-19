@@ -1,24 +1,7 @@
 ﻿namespace AdventOfCode
 
-module InputHelp =    
-    let explode (s:string) = 
-        [for c in s -> c]
-
-    let GetCharacterInput s =
-        System.IO.File.ReadAllLines s
-        |> Array.head
-        |> explode
-
-    let GetLineInput =
-        System.IO.File.ReadLines
-
 module ActualCode =
     open System.Text.RegularExpressions
-
-    let min x y = 
-        if x < y then x else y
-    let (|StartsWith|_|) needle (haystack:string) = 
-        if haystack.StartsWith(needle) then Some () else None
 
     let countFloors =
         let moveFloor current input =            
@@ -103,31 +86,46 @@ module ActualCode =
 
 module Lights =
     type Position = int*int
+    type Brightness = int
     type State = On | Off
     type Action = TurnOn | TurnOff | Toggle | Nothing
     type Update = Action * Position * Position
-    type Light = Position * State
-
-    let updateLights updates lights =
-        let update action (pos, state) =
-            match action with
-            | TurnOn -> (pos, On)
-            | TurnOff -> (pos, Off)
-            | Toggle -> (pos, if state = On then Off else On)
-            | Nothing -> (pos, state)
-        let isInside topLeft bottomLeft pos =
-            pos >= topLeft && pos <= bottomLeft
+    type Light = Position * Brightness
+    
+    let lightsOnOff action state =
+        match action with
+        | TurnOn -> On
+        | TurnOff -> Off
+        | Toggle -> if state = On then Off else On
+        | Nothing -> state
+    let adjustBrightness action brightness =
+        let adjusted = brightness +
+                        match action with
+                        | TurnOn -> 1
+                        | TurnOff -> -1
+                        | Toggle -> 2
+                        | Nothing -> 0
+        if adjusted < 0 then 0 else adjusted
+    let updateLights f updates lights =
+        let isInside c1 c2 pos =
+            let partIsInside a b z =
+                let min, max = if a<b then (a,b) else (b,a)
+                min <= z && z <= max                
+            partIsInside (fst c1) (fst c2) (fst pos) &&
+            partIsInside (snd c1) (snd c2) (snd pos)
         let updateLight l = 
             updates 
             |> List.filter (fun (_, x, y) -> isInside x y (fst l))
-            |> List.fold (fun acc (a, _, _) -> update a acc) l
+            |> List.fold (fun acc (a, _, _) -> f a acc) l
 
         lights
-        |> List.map updateLight
+        |> List.map (fun l -> async { return updateLight l })
+        |> Async.Parallel
+        |> Async.RunSynchronously
 
 
 open ActualCode
-open InputHelp
+open Utility
 module Day1 =
     module private hidden =
         let file = "InputDay1.txt"
@@ -230,27 +228,32 @@ module Day6 =
                     | (a, Some s, Some e) -> (a,s,e)
                     | _ -> (Nothing, (-1, -1), (-1, -1))
             else (Nothing, (-1, -1), (-1, -1))
-        let rec positions current =
-            //StackOverflows because not tail recursive
-            match current with
-            | (999, 999) -> [current]
-            | (x, 999) -> current::positions (x+1, 0)
-            | (x, y) -> current::positions(x, y+1)
-            
+        let positions () =
+            let rec positionsAcc acc =
+                match List.head acc with
+                    | (999, 999) -> acc
+                    | (x, 999) -> positionsAcc ((x+1, 0)::acc)
+                    | (x, y) -> positionsAcc ((x, y+1)::acc)
+            positionsAcc [(0,0)]
+        let doDay6 startState f =
+            let actions = 
+                GetLineInput file 
+                |> Seq.map parseDay6
+                |> Seq.toList
+            let lights = positions () |> List.map (fun p -> (p, startState))
+
+            updateLights f actions lights
+        let updateIndividualLight f a (p,s) = (p, f a s)
 
     open hidden
     let solution1 () = 
-        let actions = 
-            GetLineInput file 
-            |> Seq.map parseDay6
-            |> Seq.toList
-        let lights = positions (0, 0) |> List.map (fun p -> (p, Off))
+        doDay6 Off (updateIndividualLight lightsOnOff)
+        |> Array.filter (fun (_, s) -> s = On)
+        |> Array.length
 
-        updateLights actions lights
-        |> List.filter (fun (_, s) -> s = On)
-        |> List.length
-
-    let solution2 () = "Not implemented" 
+    let solution2 () = 
+        doDay6 0 (updateIndividualLight adjustBrightness)
+        |> Array.sumBy (fun (_, b) -> b)
 
 module DayX =
     module hidden=

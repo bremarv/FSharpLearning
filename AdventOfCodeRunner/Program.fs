@@ -28,8 +28,9 @@ let days = [
             {part=2; description="Nice strings part 2"; solution=Day5.solution2 >> string}
         ]};
         { day=6; description="Probably a Fire Hazard"; parts =[
-            {part=1; description=""; solution=Day6.solution1 >> string}
-            {part=2; description=""; solution=Day6.solution2 >> string}
+            {part=1; description="Total lights on"; solution=Day6.solution1 >> string}
+            {part=2; description="Brightness"; solution=Day6.solution2 >> string}
+        ]};
         ]};
     ]
 
