@@ -1,0 +1,7 @@
+#Ignore VS stuff
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages
